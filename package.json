@@ -1,0 +1,20 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx codeceptjs run",
+    "ie": "codeceptjs run-multiple ie",
+    "chrome": "codeceptjs run-multiple chrome"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@wdio/selenium-standalone-service": "^5.16.10",
+    "codeceptjs": "^2.6.5",
+    "puppeteer": "^4.0.0",
+    "axios": "latest"
+  }
+}
