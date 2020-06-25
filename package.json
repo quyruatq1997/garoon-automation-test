@@ -16,5 +16,8 @@
     "codeceptjs": "^2.6.5",
     "puppeteer": "^4.0.0",
     "axios": "latest"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0"
   }
 }

@@ -1,7 +1,8 @@
 exports.modal = () => {
     const assert = require('assert');
     const axios = require('axios');
-    Feature('Open Setting Modal');
+    const driver = require('@wdio/selenium-standalone-service');
+    Feature('Test Setting Modal');
 
     Scenario('Should open setting modal, and show full element', async (I) => {
         await I.amOnPage('https://test-dev-8.cybozu.com/login');
@@ -20,14 +21,18 @@ exports.modal = () => {
         await I.seeElement('.css-label');
         await I.click('.css-label');
         const element = await I.grabAttributeFrom('#checkbox_sync', 'checked');
-        if (element[0] === 'true'){
+        if (element[0] === 'true') {
             await I.waitForElement('#alert_sync');
             await I.seeElement('#alert_sync');
-            await I.seeElement('.one-way-input')
+            await I.seeElement('.one-way-input');
+            await I.click('.css-label');
+            await I.dontSeeElement('.one-way-input');
         } else {
             await I.waitForElement('#alert_not_sync');
             await I.seeElement('#alert_not_sync');
-            await I.dontSeeElement('.one-way-input')
+            await I.dontSeeElement('.one-way-input');
+            await I.click('.css-label');
+            await I.seeElement('.one-way-input')
         }
         await I.seeElement({xpath: '//*[@id="google_nw_contract_modal"]/div/div[3]/div[2]/h2[1]/span'});
         await I.seeElement({xpath: '//*[@id="google_nw_contract_modal"]/div/div[3]/div[2]/h3[1]'});
@@ -81,40 +86,54 @@ exports.modal = () => {
         let afterAddRow = await I.grabNumberOfVisibleElements('.addList');
         assert.notEqual(beforeAddRow, afterAddRow);
 
-        let t = await I.executeScript(function() {
-            // $('.removeList').click(function () {
-            //     assert.notEqual($(this).parent().prev().prev().val(), null)
-            // });
-
-            // axios.get('https://ppq2egypse.execute-api.ap-southeast-1.amazonaws.com/dev/setting?method=getconfig')
-            //     .then(function (response) {
-            //         // handle success
-            //         console.log(response);
-            //     })
-            //     .catch(function (error) {
-            //         // handle error
-            //         console.log(error);
-            //     });
-
-            // in browser context
-            // $.ajax({
-            //     method: "GET",
-            //     url: `https://ppq2egypse.execute-api.ap-southeast-1.amazonaws.com/dev/setting?method=getconfig`,
-            //     dataType: "json",
-            //     cache: false,
-            //     error: err => {
-            //         return(err)
-            //     },
-            //     success: (body, textStatus, xhr) => {
-            //         return(JSON.stringify(body))
-            //     }
-            // })
+        let test = await I.executeAsyncScript(function (done) {
+            $.ajax({
+                method: "GET",
+                url: `https://ppq2egypse.execute-api.ap-southeast-1.amazonaws.com/dev/setting?method=getconfig`,
+                dataType: "json",
+                cache: false,
+                error: err => {
+                    return err;
+                },
+                success: (body, textStatus, xhr) => done(body)
+            });
         });
-        const beforeDeleteColor = await I.grabAttributeFrom({xpath: '//*[@id="google-table-select-color"]/table/tbody/tr[1]/td[2]/div/div/span[1]'}, 'class');
+
+        let beforeDeleteColor = await I.grabAttributeFrom({xpath: '//*[@id="google-table-select-color"]/table/tbody/tr[1]/td[2]/div/div/span[1]'}, 'class');
         await I.click({xpath: '//*[@id="google-table-select-color"]/table/tbody/tr[1]/td[3]/button[2]'});
         const afterDeleteColor = await I.grabAttributeFrom({xpath: '//*[@id="google-table-select-color"]/table/tbody/tr[1]/td[2]/div/div/span[1]'}, 'class');
-        assert.notEqual(beforeDeleteColor, afterDeleteColor);
-        // await I.click('.addList');
+        await assert.notEqual(beforeDeleteColor, afterDeleteColor);
+        await I.executeScript(function () {
+            $("#google_nw_contract_modal").animate(
+                {scrollTop: $('#google_submit').offset().top - 80},
+                500)
+        })
+        let beforeAddRowFac = await I.grabNumberOfVisibleElements('.addList-facilities');
+        await I.click('.addList-facilities');
+        await I.wait(1);
+        let afterAddRowFac = await I.grabNumberOfVisibleElements('.addList-facilities');
+        await assert.notEqual(beforeAddRowFac, afterAddRowFac);
+        let beforeDeleteFac = await I.grabAttributeFrom({xpath: '//*[@id="google-table-select-facilities"]/table/tbody/tr[1]/td[2]/div/div/div/div/select'}, 'value');
+        await I.click({xpath: '//*[@id="google-table-select-facilities"]/table/tbody/tr[1]/td[3]/button[2]'});
+        const afterDeleteFac = await I.grabAttributeFrom({xpath: '//*[@id="google-table-select-facilities"]/table/tbody/tr[1]/td[2]/div/div/div/div/select'}, 'value');
+        await assert.notEqual(beforeDeleteFac, afterDeleteFac);
+        if (test.userInfo === []){
+            await I.dontSeeElement('.export-csv');
+            await I.dontSeeElement('.google_garoon-user');
+            await I.dontSeeElement('.google-user');
+            await I.dontSeeElement('.kintoneplugin-input-checkbox-item');
+        } else {
+            await I.seeElement('.export-csv');
+            await I.seeElement('.google_garoon-user');
+            await I.seeElement('.google-user');
+            await I.seeElement('.kintoneplugin-input-checkbox-item');
+        }
+        await I.click('#google_submit');
+        let dialogConfirm = locate('div').withAttr({class: 'swal-modal', role: 'dialog'});
+        await I.seeElement(dialogConfirm);
+        await I.click('OK');
+        await I.click('#google_cancel');
+        await I.dontSeeElement('#google_nw_contract_modal');
         pause();
     });
 }

@@ -12,7 +12,7 @@ exports.config = {
       url: 'http://localhost',
       browser: 'internet explorer',
       restart: false,
-      windowSize: '1920x1680',
+      windowSize: 'maximize',
       desiredCapabilities: {
         ieOptions: {
           "ie.browserCommandLineSwitches": "-private",
@@ -50,7 +50,6 @@ exports.config = {
       browsers: ["chrome"],
       keepBrowserState: true,
       keepCookies: true,
-      windowSize: '1920x1680',
       desiredCapabilities: {
         chromeOptions: {
           args: [ /*"--headless",*/ "--disable-gpu", "--no-sandbox" ]
